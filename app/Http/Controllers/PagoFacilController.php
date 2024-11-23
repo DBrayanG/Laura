@@ -36,14 +36,15 @@ class PagoFacilController extends Controller
             $lnMontoClienteEmpresa = $pedido->monto_total;
             $lcCorreo              = $usuario->correo;
             $lcUrlCallBack         = "https://dcaf6c13-2970-4b12-9a6f-92cc226f358b-00-2mo9qjcuvclsm.kirk.replit.dev/api/urlcallback" . $pedido->id;
-            $lcUrlReturn           = "http://localhost:8000/" . $pedido->id;
+            $lcUrlReturn           = "http://localhost:8000/". "/pago_facil/callback/" . $pedido->id;
             $laPedidoDetalle       = Json_encode($taPedidoDetalle);
             $lcUrl                 = "";
 
             $loClient = new Client();
-            if ($request->tnTipoServicio == 1) {
+            $tnTipoServicio = $request->input('tnTipoServicio', 1);
+            if ($tnTipoServicio == 1) {
                 $lcUrl = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/pagoqr";
-            } elseif ($request->tnTipoServicio == 2) {
+            } elseif ($tnTipoServicio == 2) {
                 $lcUrl = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/pagotigomoney";
             }            
 
@@ -120,23 +121,29 @@ class PagoFacilController extends Controller
 
             
             }
-            /*$laValues = explode(";", $laResult->values)[1];
+            $laValues = explode(";", $laResult->values)[1];
             $base64_string = json_decode($laValues)->qrImage;
             $image = base64_decode($base64_string);
-            return response($image, 200, ['Content-Type' => 'image/png']);*/
+            return response($image, 200, ['Content-Type' => 'image/png']);
         } catch (\Throwable $th) {
             return $th->getMessage() . " - " . $th->getLine();
         }
     }
     public function GenerarQR(Request $request, Pedido $pedido)
     {
+        
         try {
-            $loRespuestaToken= $this->obtenerToken();          
+            
+            
+            // Obtener el token de acceso
+            $loRespuestaToken = $this->obtenerToken();
+            $lcTokenAcceso = $loRespuestaToken["values"];
 
-            // iniclizando la variable con el token de acceso 
-            $lcTokenAcceso=$loRespuestaToken["values"];
+            // Información del usuario autenticado
             $usuario = auth()->user();
             $nit = $usuario->id + 10000;
+
+            // Obtener detalles del pedido
             $detalle = PedidoDetalle::where('pedido_id', $pedido->id)->get();
             $taPedidoDetalle = [];
             foreach ($detalle as $item) {
@@ -147,103 +154,71 @@ class PagoFacilController extends Controller
                     "tnSubTotal" => $item->precio * $item->cantidad
                 ];
             }
-            //$url = env("APP_ENV") ?? 'https://tecnoweb.org.bo/inf513/grupo12sc/laura/public';
-            $lcComerceID           = "d029fa3a95e174a19934857f535eb9427d967218a36ea014b70ad704bc6c8d1c";
-            $lnMoneda              = 2;
-            $lnTelefono            = $usuario->telefono ?? 65947484;
-            $lcNombreUsuario       = $usuario->name;
-            $lnCiNit               = $nit;
-            $lcNroPago             = "grupo12sc-" . rand(100000, 999999);
-            $lnMontoClienteEmpresa = $pedido->monto_total;
-            $lcCorreo              = $usuario->email;
-            $lcUrlCallBack         = "https://dcaf6c13-2970-4b12-9a6f-92cc226f358b-00-2mo9qjcuvclsm.kirk.replit.dev/api/urlcallback" . $pedido->id;
-            $lcUrlReturn           = "http://localhost:8000/" . $pedido->id;
-            $laPedidoDetalle       = Json_encode($taPedidoDetalle);
-            $lcUrl                 = "";
 
-            $loClient = new Client();
-            if ($request->tnTipoServicio == 1) {
+            // Parámetros necesarios
+            $lcComerceID = "d029fa3a95e174a19934857f535eb9427d967218a36ea014b70ad704bc6c8d1c";
+            $lnMoneda = 2;
+            $lnTelefono = $usuario->telefono ?? 61326028;
+            $lcNombreUsuario = $usuario->name;
+            $lnCiNit = $nit;
+            $lcNroPago = "grupo12sc-" . rand(100000, 999999);
+            $lnMontoClienteEmpresa = $pedido->monto_total;
+            $lcCorreo = $usuario->email;
+            $lcUrlCallBack = "https://dcaf6c13-2970-4b12-9a6f-92cc226f358b-00-2mo9qjcuvclsm.kirk.replit.dev/api/urlcallback/" . $pedido->id;
+            $lcUrlReturn = "http://localhost:8000/pago_facil/callback/" . $pedido->id;
+
+            // Convertir los detalles del pedido a JSON
+            $laPedidoDetalle = json_encode($taPedidoDetalle);
+
+            // Definir la URL según el tipo de servicio
+            $lcUrl = "";
+            $tnTipoServicio = $request->input('tnTipoServicio', 1);
+            if ($tnTipoServicio == 1) {
                 $lcUrl = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/pagoqr";
-            } elseif ($request->tnTipoServicio == 2) {
+            } elseif ($tnTipoServicio == 2) {
                 $lcUrl = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/pagotigomoney";
+            } else {
+                return response()->json(['error' => 'Tipo de servicio no válido'], 400);
             }
 
+            // Configurar el cliente HTTP
+            $loClient = new Client();
+            
             $laHeader = [
                 'Accept' => 'application/json',
-                'Authorization' => 'Bearer '. $lcTokenAcceso
+                'Authorization' => 'Bearer ' . $lcTokenAcceso
             ];
-            $laBody   = [
-                "tcCommerceID"          => $lcComerceID,
-                "tnMoneda"              => $lnMoneda,
-                "tnTelefono"            => $lnTelefono,
-                'tcNombreUsuario'       => $lcNombreUsuario,
-                'tnCiNit'               => $lnCiNit,
-                'tcNroPago'             => $lcNroPago,
+            $laBody = [
+                "tcCommerceID" => $lcComerceID,
+                "tnMoneda" => $lnMoneda,
+                "tnTelefono" => $lnTelefono,
+                'tcNombreUsuario' => $lcNombreUsuario,
+                'tnCiNit' => $lnCiNit,
+                'tcNroPago' => $lcNroPago,
                 "tnMontoClienteEmpresa" => $lnMontoClienteEmpresa,
-                "tcCorreo"              => $lcCorreo,
-                'tcUrlCallBack'         => $lcUrlCallBack,
-                "tcUrlReturn"           => $lcUrlReturn,
-                'taPedidoDetalle'       => $laPedidoDetalle
+                "tcCorreo" => $lcCorreo,
+                'tcUrlCallBack' => $lcUrlCallBack,
+                "tcUrlReturn" => $lcUrlReturn,
+                'taPedidoDetalle' => $laPedidoDetalle
             ];
+
+            // Realizar la solicitud al servicio
             $loResponse = $loClient->post($lcUrl, [
                 'headers' => $laHeader,
                 'json' => $laBody
             ]);
             $laResult = json_decode($loResponse->getBody()->getContents());
-            if ($request->tnTipoServicio == 1) {
 
-                $laValues = explode(";", $laResult->values)[1];
-
-                $laQrImage = "data:image/png;base64," . json_decode($laValues)->qrImage;
-                echo '<img src="' . $laQrImage . '" alt="Imagen base64">';
-            } elseif ($request->tnTipoServicio == 2) {
-
-                $csrfToken = csrf_token();
-
-                echo '<h5 class="text-center mb-4">' . $laResult->message . '</h5>';
-                echo '<p class="blue-text">Transacción Generada: </p><p id="tnTransaccion" class="blue-text">'. $laResult->values . '</p><br>';
-                echo '<iframe name="QrImage" style="width: 100%; height: 300px;"></iframe>';
-                echo '<script src="https://code.jquery.com/jquery-3.7.0.min.js" integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>';
-
-                echo '<script>
-                        $(document).ready(function() {
-                            function hacerSolicitudAjax(numero) {
-                                // Agrega el token CSRF al objeto de datos
-                                var data = { _token: "' . $csrfToken . '", tnTransaccion: numero };
-                                
-                                $.ajax({
-                                    url: \'/consultar\',
-                                    type: \'POST\',
-                                    data: data,
-                                    success: function(response) {
-                                        var iframe = document.getElementsByName(\'QrImage\')[0];
-                                        iframe.contentDocument.open();
-                                        iframe.contentDocument.write(response.message);
-                                        iframe.contentDocument.close();
-                                    },
-                                    error: function(error) {
-                                        console.error(error);
-                                    }
-                                });
-                            }
-
-                            setInterval(function() {
-                                hacerSolicitudAjax(' . $laResult->values . ');
-                            }, 7000);
-                        });
-                    </script>';
-
-
-            
-            }
             $laValues = explode(";", $laResult->values)[1];
+
             $base64_string = json_decode($laValues)->qrImage;
             $image = base64_decode($base64_string);
             return response($image, 200, ['Content-Type' => 'image/png']);
         } catch (\Throwable $th) {
-            return $th->getMessage() . " - " . $th->getLine();
+            return response()->json(['error' => $th->getMessage(), 'line' => $th->getLine()], 500);
         }
     }
+
     public function ConsultarEstado(Request $request)
     {
         $lnTransaccion = $request->tnTransaccion;
@@ -276,6 +251,8 @@ class PagoFacilController extends Controller
 
     public function urlCallback(Request $request, Pedido $pedido)
     {
+        
+
         $pedido->estado =  $request->input("Estado");
         $pedido->save();
         try {

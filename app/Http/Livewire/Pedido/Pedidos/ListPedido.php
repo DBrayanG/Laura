@@ -36,7 +36,7 @@ class ListPedido extends Component
 
     public function delete($id)
     {
-        if (Pedido::DeleteUsuario($id)) {
+        if (Pedido::find($id)?->delete()) {
             $this->message = 'Eliminado correctamente';
             $this->type = 'success';
         } else {

@@ -31,7 +31,7 @@
         <div class="">
             <p class="text-blue-900 text-xl font-extrabold">Realizar el pago en el siguiente QR</p>
             <div class="flex flex-col p-4 gap-4 text-lg font-semibold shadow-md border rounded-sm">
-                <img src="{{ route('pago_facil.pagar.qr', $pedido->id) }}" alt="" class="w-96 h-96">
+                <img src="{{ route('pago_facil.pagar.qr', $pedido->id) }}" alt="" class="w-96 h-96"> 
             </div>
         </div>
     </div>
