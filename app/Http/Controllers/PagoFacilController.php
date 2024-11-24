@@ -8,6 +8,7 @@ use App\Models\Usuario;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Js;
+use Illuminate\Support\Facades\Log;
 
 class PagoFacilController extends Controller
 {
@@ -130,19 +131,14 @@ class PagoFacilController extends Controller
         }
     }
     public function GenerarQR(Request $request, Pedido $pedido)
-    {
-        
+    {             
         try {
-            
-            
             // Obtener el token de acceso
             $loRespuestaToken = $this->obtenerToken();
             $lcTokenAcceso = $loRespuestaToken["values"];
-
             // Información del usuario autenticado
             $usuario = auth()->user();
             $nit = $usuario->id + 10000;
-
             // Obtener detalles del pedido
             $detalle = PedidoDetalle::where('pedido_id', $pedido->id)->get();
             $taPedidoDetalle = [];
@@ -207,52 +203,89 @@ class PagoFacilController extends Controller
                 'headers' => $laHeader,
                 'json' => $laBody
             ]);
-            $laResult = json_decode($loResponse->getBody()->getContents());
+            
+            $laResult = json_decode($loResponse->getBody()->getContents(), true);
 
-            $laValues = explode(";", $laResult->values)[1];
+            // Extraer el código de transacción
+            $codigoTransaccion = explode(";", $laResult['values'])[0];
 
-            $base64_string = json_decode($laValues)->qrImage;
-            $image = base64_decode($base64_string);
-            return response($image, 200, ['Content-Type' => 'image/png']);
+            // Decodificar la imagen QR en base64
+            $base64_string = json_decode(explode(";", $laResult['values'])[1])->qrImage ?? null;
+
+            // Retornar el JSON con los datos
+            return response()->json([
+                'qr_image' => $base64_string, // Imagen QR en base64
+                'codigo_transaccion' => $codigoTransaccion // Código de transacción
+            ], 200);
+
         } catch (\Throwable $th) {
             return response()->json(['error' => $th->getMessage(), 'line' => $th->getLine()], 500);
         }
     }
 
-    public function ConsultarEstado(Request $request)
+    public function ConsultarEstado(Request $request, $pedido)
     {
-        $lnTransaccion = $request->tnTransaccion;
-
+        $pedido = Pedido::find($pedido); // Usar el parámetro $pedido
+        log::info($request->all());
+        if (!$pedido) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pedido no encontrado.'
+            ], 404);
+        }
+    
+        $lnTransaccion = $request->input('tnTransaccion'); // Obtener la transacción
+    
         $loClientEstado = new Client();
-
+    
         $lcUrlEstadoTransaccion = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/consultartransaccion";
-
+    
         $laHeaderEstadoTransaccion = [
-            'Accept' => 'application/json'
+            'Accept' => 'application/json',
         ];
-
+    
         $laBodyEstadoTransaccion = [
-            "TransaccionDePago" => $lnTransaccion
+            "TransaccionDePago" => $lnTransaccion,
         ];
-
-        $loEstadoTransaccion = $loClientEstado->post($lcUrlEstadoTransaccion, [
-            'headers' => $laHeaderEstadoTransaccion,
-            'json' => $laBodyEstadoTransaccion
-        ]);
-
-        $laResultEstadoTransaccion = json_decode($loEstadoTransaccion->getBody()->getContents());
-        return response()->json(['message' => $laResultEstadoTransaccion]);
-       
-
-       $texto = '<h5 class="text-center mb-4">Estado Transacción: ' . $laResultEstadoTransaccion->values->messageEstado . '</h5><br>';
-
-       return response()->json(['message' => $texto]);
+    
+        try {
+            $loEstadoTransaccion = $loClientEstado->post($lcUrlEstadoTransaccion, [
+                'headers' => $laHeaderEstadoTransaccion,
+                'json' => $laBodyEstadoTransaccion,
+            ]);
+    
+            $laResultEstadoTransaccion = json_decode($loEstadoTransaccion->getBody()->getContents(), true);
+    
+            $estadoTransaccion = $laResultEstadoTransaccion['values']['EstadoTransaccion'] ?? null;
+            log::info($estadoTransaccion);
+    
+            if (in_array($estadoTransaccion, [1, 2])) {
+                // Actualizar el estado del pedido a COMPLETADO
+                $pedido->estado = 'Completado';
+                $pedido->save();
+    
+                return response()->json([
+                    'success' => true,
+                    'estadoTransaccion' => $estadoTransaccion,
+                    'message' => 'Pago confirmado. Pedido actualizado a COMPLETADO.',
+                ]);
+            }
+    
+            return response()->json([
+                'success' => true,
+                'estadoTransaccion' => $estadoTransaccion,
+                'message' => 'Transacción procesada, pero no completada.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al consultar el estado de la transacción: ' . $e->getMessage(),
+            ], 500);
+        }
     }
-
     public function urlCallback(Request $request, Pedido $pedido)
-    {
-        
-
+    {        
+        return $pedido;
         $pedido->estado =  $request->input("Estado");
         $pedido->save();
         try {
@@ -269,12 +302,7 @@ class PagoFacilController extends Controller
         $loClient = new Client();
 
         // URL del servicio de login
-        $lcUrl = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/login";
-/*
-        [2:24 p.m., 18/11/2024] +591 62037370: CommerceID: d029fa3a95e174a19934857f535eb9427d967218a36ea014b70ad704bc6c8d1c
-        [2:25 p.m., 18/11/2024] +591 62037370: TokenSecret: 9E7BC239DDC04F83B49FFDA5
-        [2:25 p.m., 18/11/2024] +591 62037370: TokenService: 51247fae280c20410824977b0781453df59fad5b23bf2a0d14e884482f91e09078dbe5966e0b970ba696ec4caf9aa5661802935f86717c481f1670e63f35d5041c31d7cc6124be82afedc4fe926b806755efe678917468e31593a5f427c79cdf016b686fca0cb58eb145cf524f62088b57c6987b3bb3f30c2082b640d7c52907
-*/            
+        $lcUrl = "https://serviciostigomoney.pagofacil.com.bo/api/servicio/login";           
         // Definir los encabezados de la solicitud
         $laHeader = [
             'Accept' => 'application/json',
