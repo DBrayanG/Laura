@@ -37,7 +37,7 @@ class PagoFacilController extends Controller
             $lnMontoClienteEmpresa = $pedido->monto_total;
             $lcCorreo              = $usuario->correo;
             $lcUrlCallBack         = "https://dcaf6c13-2970-4b12-9a6f-92cc226f358b-00-2mo9qjcuvclsm.kirk.replit.dev/api/urlcallback" . $pedido->id;
-            $lcUrlReturn           = "http://localhost:8000/". "/pago_facil/callback/" . $pedido->id;
+            $lcUrlReturn           = "http://mail.tecnoweb.org.bo/inf513/grupo12sc/proyecto2/". "/pago_facil/callback/" . $pedido->id;
             $laPedidoDetalle       = Json_encode($taPedidoDetalle);
             $lcUrl                 = "";
 
@@ -161,7 +161,7 @@ class PagoFacilController extends Controller
             $lnMontoClienteEmpresa = $pedido->monto_total;
             $lcCorreo = $usuario->email;
             $lcUrlCallBack = "https://dcaf6c13-2970-4b12-9a6f-92cc226f358b-00-2mo9qjcuvclsm.kirk.replit.dev/api/urlcallback/" . $pedido->id;
-            $lcUrlReturn = "http://localhost:8000/pago_facil/callback/" . $pedido->id;
+            $lcUrlReturn = "http://mail.tecnoweb.org.bo/inf513/grupo12sc/proyecto2/pago_facil/callback/" . $pedido->id;
 
             // Convertir los detalles del pedido a JSON
             $laPedidoDetalle = json_encode($taPedidoDetalle);
