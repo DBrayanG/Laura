@@ -17,13 +17,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = Role::create(['name' => 'Administrador']);
+        /*$admin = Role::create(['name' => 'Administrador']);
         $vendendor = Role::create(['name' => 'Vendedor']);
         $almacenista = Role::create(['name' => 'Almacenista']);
-        $public = Role::create(['name' => 'Publico']);
+        $public = Role::create(['name' => 'Publico']);*/
 
         //Permisos
-        Permission::create(['name' => 'dashboard', 'description' => 'Ver Dashboard'])->syncRoles($admin, $vendendor, $almacenista);
+        /*Permission::create(['name' => 'dashboard', 'description' => 'Ver Dashboard'])->syncRoles($admin, $vendendor, $almacenista);
         Permission::create(['name' => 'usuarios', 'description' => 'Gestionar Usuarios'])->syncRoles($admin);
         Permission::create(['name' => 'roles', 'description' => 'Gestionar Roles'])->syncRoles($admin);
         Permission::create(['name' => 'pedidos', 'description' => 'Gestionar Pedidos'])->syncRoles($admin, $vendendor);
@@ -83,14 +83,14 @@ class DatabaseSeeder extends Seeder
         Pagina::create(['nombre' => 'Contacto', 'ruta' => 'public.contacto', 'visitas' => 0]);
         Pagina::create(['nombre' => 'Perfil', 'ruta' => 'public.perfil', 'visitas' => 0]);
         Pagina::create(['nombre' => 'Lista de Pedidos', 'ruta' => 'public.pedido', 'visitas' => 0]);
-        Pagina::create(['nombre' => 'Detalle de Pedido', 'ruta' => 'public.pedido.show', 'visitas' => 0]);
+        Pagina::create(['nombre' => 'Detalle de Pedido', 'ruta' => 'public.pedido.show', 'visitas' => 0]);*/
 
 
         //Usuarios
         User::create([
-            'name' => 'Test User',
-            'email' => 'example@live.com',
-            'password' => bcrypt('12345678'),
+            'name' => 'Brayan',
+            'email' => 'duawnbrayan@gmail.com',
+            'password' => bcrypt('123456789'),
             'direccion' => 'calle falsa 123',
             'telefono' => '123456789',
             'cargo' => 'Administrador',
@@ -99,15 +99,15 @@ class DatabaseSeeder extends Seeder
             'es_administrador' => true,
         ])->assignRole('Administrador');
         User::create([
-            'name' => 'daniela carrasco',
-            'email' => 'daniela.carrasco@nahuelxzv.pro',
-            'password' => bcrypt('12345678'),
+            'name' => 'evans',
+            'email' => 'evansbalcazar@uagrm.edu.bo',
+            'password' => bcrypt('123456789'),
             'direccion' => 'calle falsa 123',
             'telefono' => '123456789',
-            'cargo' => '',
+            'cargo' => 'Administrador',
             'es_cliente' => true,
-            'es_personal' => false,
-            'es_administrador' => false,
-        ]);
+            'es_personal' => true,
+            'es_administrador' => true,
+        ])->assignRole('Administrador');        
     }
 }
