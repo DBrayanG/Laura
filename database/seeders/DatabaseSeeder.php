@@ -17,13 +17,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        /*$admin = Role::create(['name' => 'Administrador']);
+        $admin = Role::create(['name' => 'Administrador']);
         $vendendor = Role::create(['name' => 'Vendedor']);
         $almacenista = Role::create(['name' => 'Almacenista']);
-        $public = Role::create(['name' => 'Publico']);*/
+        $public = Role::create(['name' => 'Publico']);
 
         //Permisos
-        /*Permission::create(['name' => 'dashboard', 'description' => 'Ver Dashboard'])->syncRoles($admin, $vendendor, $almacenista);
+        Permission::create(['name' => 'dashboard', 'description' => 'Ver Dashboard'])->syncRoles($admin, $vendendor, $almacenista);
         Permission::create(['name' => 'usuarios', 'description' => 'Gestionar Usuarios'])->syncRoles($admin);
         Permission::create(['name' => 'roles', 'description' => 'Gestionar Roles'])->syncRoles($admin);
         Permission::create(['name' => 'pedidos', 'description' => 'Gestionar Pedidos'])->syncRoles($admin, $vendendor);
@@ -83,7 +83,7 @@ class DatabaseSeeder extends Seeder
         Pagina::create(['nombre' => 'Contacto', 'ruta' => 'public.contacto', 'visitas' => 0]);
         Pagina::create(['nombre' => 'Perfil', 'ruta' => 'public.perfil', 'visitas' => 0]);
         Pagina::create(['nombre' => 'Lista de Pedidos', 'ruta' => 'public.pedido', 'visitas' => 0]);
-        Pagina::create(['nombre' => 'Detalle de Pedido', 'ruta' => 'public.pedido.show', 'visitas' => 0]);*/
+        Pagina::create(['nombre' => 'Detalle de Pedido', 'ruta' => 'public.pedido.show', 'visitas' => 0]);
 
 
         //Usuarios
