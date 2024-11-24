@@ -18,7 +18,7 @@ class ListProduct extends Component
 
     function addCart($id)
     {
-        $this->emit('addCart', $id, 1);
+        $this->emit('addCart', $id, 1); 
     }
 
     public function render()

@@ -54,9 +54,9 @@ return [
     |
     */
 
-    // 'asset_url' => "https://tecnoweb.org.bo/inf513/grupo12sc/laura/public",
+     'asset_url' => "http://mail.tecnoweb.org.bo/inf513/grupo12sc/proyecto2/public",
     // 'asset_url' => env('APP_URL'),
-    'asset_url' => env('APP_URL'),
+    //'asset_url' => env('APP_URL'),
 
     /*
     |--------------------------------------------------------------------------
