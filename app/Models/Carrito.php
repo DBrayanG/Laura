@@ -44,6 +44,7 @@ class Carrito extends Model
     static public function DeleteCarrito($id)
     {
         $carrito = Carrito::find($id);
+        CarritoDetalle::where('carrito_id', $carrito->id)->delete();
         $carrito->delete();
         return $carrito;
     }
