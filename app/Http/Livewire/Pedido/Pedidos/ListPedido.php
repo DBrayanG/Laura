@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Pedido\Pedidos;
 
 use App\Models\Pagina;
 use App\Models\Pedido;
+use App\Models\PedidoDetalle;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -36,13 +37,22 @@ class ListPedido extends Component
 
     public function delete($id)
     {
-        if (Pedido::find($id)?->delete()) {
+        $pedido = Pedido::find($id);
+
+        if ($pedido) {
+            // Eliminar los detalles del pedido antes de eliminar el pedido
+            PedidoDetalle::where('pedido_id', $pedido->id)->delete();
+
+            // Eliminar el pedido
+            $pedido->delete();
+
             $this->message = 'Eliminado correctamente';
             $this->type = 'success';
         } else {
             $this->message = 'Error al eliminar';
             $this->type = 'error';
         }
+
         $this->notificacion = true;
     }
 
