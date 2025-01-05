@@ -135,7 +135,7 @@ class PagoFacilController extends Controller
         try {
             // Obtener el token de acceso
             $loRespuestaToken = $this->obtenerToken();
-            $lcTokenAcceso = $loRespuestaToken["values"];
+            $lcTokenAcceso = $loRespuestaToken["values"]; 
             // Información del usuario autenticado
             $usuario = auth()->user();
             $nit = $usuario->id + 10000;

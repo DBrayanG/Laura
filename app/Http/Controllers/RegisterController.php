@@ -33,7 +33,7 @@ class RegisterController extends BaseController
             'password.required' => 'La contraseña es requerida',
             'password.confirmed' => 'Las contraseñas no coinciden',
             'telefono.required' => 'El telefono es requerido',
-            'direccion.required' => 'La direccion es requerida',
+            'direccion.required' => 'La direccion es requerida', 
         ];
 
         $this->validate(request(), $rules, $messages);
