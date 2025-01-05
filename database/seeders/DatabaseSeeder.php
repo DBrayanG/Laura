@@ -108,6 +108,6 @@ class DatabaseSeeder extends Seeder
             'es_cliente' => true,
             'es_personal' => true,
             'es_administrador' => true,
-        ])->assignRole('Administrador');        
+        ])->assignRole('Administrador');         
     }
 }
